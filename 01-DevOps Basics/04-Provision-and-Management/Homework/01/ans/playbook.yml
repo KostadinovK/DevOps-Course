@@ -1,0 +1,25 @@
+---
+- hosts: all
+  become: true
+
+  tasks:
+     - name: Download the Docker installer
+       get_url: url=https://get.docker.com/ dest=/root/install_docker.sh mode=0700
+
+     - name: Install Docker
+       shell: /root/install_docker.sh
+
+     - name: Enable the Docker daemon
+       service: name=docker state=started enabled=true
+
+     - name: Disable firewall
+       service: name=firewalld state=stopped enabled=false  
+
+     - name: Copy Dockerfile
+       copy: src=./Dockerfile dest=/home/vagrant/Dockerfile
+
+     - name: Build image
+       command: docker build -t my-nginx /home/vagrant/
+
+     - name: Run container
+       command: docker container run -d -p 8080:80 --name web my-nginx

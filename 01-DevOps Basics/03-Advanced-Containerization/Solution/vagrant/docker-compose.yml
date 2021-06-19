@@ -1,0 +1,23 @@
+version: "3"
+
+services:
+    swrm-web:
+        image: shekeriev/img-dob-hw3-web
+        deploy:
+            replicas: 3
+        ports:
+            - 8080:80
+        networks:
+            - swrm-network
+        depends_on:
+            - swrm-db
+
+    swrm-db:
+        image: shekeriev/img-dob-hw3-db
+        networks:
+            - swrm-network
+        environment:
+            MYSQL_ROOT_PASSWORD: "12345"
+
+networks:
+    swrm-network:

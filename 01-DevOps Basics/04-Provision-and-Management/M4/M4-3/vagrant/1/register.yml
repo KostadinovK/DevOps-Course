@@ -1,0 +1,11 @@
+---
+- hosts: clnt
+  become: false
+
+  tasks:
+    - name: Get system's kernel version
+      shell: /usr/bin/uname -r
+      register: kver
+
+    - name: Debug info
+      debug: var=kver

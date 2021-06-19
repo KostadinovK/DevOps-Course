@@ -1,0 +1,25 @@
+version: "3"
+
+services:
+    swrm-php:
+        image: shekeriev/dob-w3-php
+        deploy:
+          replicas: 5
+        ports:
+            - 8080:80
+        volumes:
+            - "/home/docker/M3-3/php:/var/www/html:ro"
+        networks:
+            - swrm-network
+        depends_on:
+            - swrm-mysql
+
+    swrm-mysql:
+        image: shekeriev/dob-w3-mysql
+        networks:
+            - swrm-network
+        environment:
+            MYSQL_ROOT_PASSWORD: "12345"
+
+networks:
+    swrm-network:

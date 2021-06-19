@@ -1,0 +1,20 @@
+web ansible_host=192.168.98.100 
+db ansible_host=192.168.98.101 
+clnt ansible_host=192.168.98.102 ansible_user=vagrant ansible_ssh_pass=vagrant
+
+[webservers]
+web
+
+[dbservers]
+db
+
+[stations]
+clnt
+
+[servers:children]
+webservers
+dbservers
+
+[servers:vars]
+ansible_user=vagrant
+ansible_ssh_pass=vagrant

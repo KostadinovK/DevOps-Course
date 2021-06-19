@@ -1,0 +1,18 @@
+- name: Red Hat - Install Apache HTTP Server
+  dnf: 
+    name: httpd
+    state: present
+    
+- name: Red Hat - Start and Enable Apache HTTP Server
+  service: 
+    name: httpd 
+    state: started 
+    enabled: true
+
+- name: Red Hat - Open HTTP Port in the Firewall
+  firewalld:
+    port: 80/tcp
+    permanent: true
+    state: enabled
+    immediate: true
+     

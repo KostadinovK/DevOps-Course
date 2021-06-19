@@ -1,0 +1,73 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+$add_hosts = <<SCRIPT
+echo "192.168.99.100 master.dob.homework master" >> /etc/hosts
+echo "192.168.99.101 slave.dob.homework slave" >> /etc/hosts
+SCRIPT
+
+$install_java = <<SCRIPT
+echo "* Install Java And opens port 80 on Firewall..."
+sudo dnf install java-1.8.0-openjdk -y
+sudo firewall-cmd --permanent --add-port=80/tcp
+sudo firewall-cmd --reload
+SCRIPT
+
+$install_git = <<SCRIPT
+sudo dnf install git -y
+SCRIPT
+
+$install_jenkins = <<SCRIPT
+echo "* Install Jenkins ..."
+sudo wget https://pkg.jenkins.io/redhat/jenkins.repo -O /etc/yum.repos.d/jenkins.repo
+sudo rpm --import https://pkg.jenkins.io/redhat/jenkins.io.key
+sudo dnf update -y
+sudo dnf install jenkins -y
+
+echo "* Start Jenkins ..."
+sudo systemctl start jenkins
+sudo systemctl enable jenkins
+
+echo "* Enable Jenkins in Firewall..."
+sudo firewall-cmd --permanent --add-port=8080/tcp
+sudo firewall-cmd --permanent --add-port=80/tcp
+sudo firewall-cmd --reload
+SCRIPT
+
+$install_docker = <<SCRIPT
+echo "* Install Docker ..."
+sudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+sudo dnf install docker-ce docker-ce-cli -y
+
+echo "* Start Jenkins ..."
+sudo systemctl start docker
+sudo systemctl enable docker
+SCRIPT
+
+Vagrant.configure(2) do |config|
+    
+  config.ssh.insert_key = false
+
+  config.vm.define "master" do |master|
+    master.vm.box="shekeriev/centos-8-minimal"
+    master.vm.hostname = "master.dob.homework"
+    master.vm.network "private_network", ip: "192.168.99.100"
+    master.vm.network "forwarded_port", guest: 80, host: 8000
+    master.vm.network "forwarded_port", guest: 8080, host: 8080
+    master.vm.provision "shell", inline: $add_hosts
+    master.vm.provision "shell", inline: $install_java
+    master.vm.provision "shell", inline: $install_jenkins
+  end
+
+  config.vm.define "slave" do |slave|
+    slave.vm.box = "shekeriev/centos-8-minimal"
+    slave.vm.hostname = "slave.dob.homework"
+    slave.vm.network "private_network", ip: "192.168.99.101"
+    slave.vm.network "forwarded_port", guest: 80, host: 8088
+    slave.vm.provision "shell", inline: $add_hosts
+    slave.vm.provision "shell", inline: $install_java
+    slave.vm.provision "shell", inline: $install_git
+    slave.vm.provision "shell", inline: $install_docker
+  end
+ 
+end

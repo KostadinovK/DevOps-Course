@@ -1,0 +1,8 @@
+---
+- hosts: webservers
+  become: true
+
+  tasks:
+    - name: Copy new index.html
+      copy: src=html/index.html dest=/var/www/html/
+

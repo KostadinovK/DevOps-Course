@@ -1,0 +1,1 @@
+{"virtualbox":{"/home/vagrant/website":{"guestpath":"/home/vagrant/website","hostpath":"D:/SoftUni/DevOps/01-DevOps Basics/02-Containerization-Basics/Homework/website","disabled":false,"__vagrantfile":true},"/vagrant":{"guestpath":"/vagrant","hostpath":"D:/SoftUni/DevOps/01-DevOps Basics/02-Containerization-Basics/Homework","disabled":false,"__vagrantfile":true}}}

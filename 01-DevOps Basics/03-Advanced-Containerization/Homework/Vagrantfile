@@ -1,0 +1,93 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+machines=[
+  {
+    :hostname => "manager",
+    :ip => "192.168.99.100",
+    :box => "shekeriev/centos-8-minimal",
+    :ram => 1024,
+  },
+  {
+    :hostname => "worker-1",
+    :ip => "192.168.99.101",
+    :box => "shekeriev/centos-8-minimal",
+    :ram => 1024,
+  },
+  {
+    :hostname => "worker-2",
+    :ip => "192.168.99.102",
+    :box => "shekeriev/centos-8-minimal",
+    :ram => 1024,
+  }
+]
+
+$install_docker_script = <<SCRIPT
+  echo "* Add Docker repository ..."
+  dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+  
+  echo "* Add the missing dependency ..."
+  dnf install -y https://download.docker.com/linux/centos/7/x86_64/stable/Packages/containerd.io-1.2.13-3.1.el7.x86_64.rpm
+  
+  echo "* Install Docker ..."
+  dnf install -y docker-ce docker-ce-cli
+  
+  echo "* Enable and start Docker ..."
+  systemctl enable docker
+  systemctl start docker
+  
+  echo "*Disable Firewall..."
+  systemctl stop firewalld
+  
+  echo "* Add vagrant user to docker group ..."
+  usermod -aG docker vagrant
+SCRIPT
+
+$manager_script = <<SCRIPT
+if [ "$#" -eq 1 ]; then
+   echo "Docker swarm init..."
+   echo Arguments: $*
+   docker swarm init --advertise-addr $1
+   docker swarm join-token -q worker > /vagrant/swarm-token-worker
+else
+   echo "Illegal number of parameters"
+fi
+SCRIPT
+
+$node_script = <<SCRIPT
+echo "Arguments: $*"
+if [ "$#" -eq 2 ]; then
+   echo "Docker swarm join..."
+   cat /vagrant/swarm-token-worker
+   docker swarm join --token `cat /vagrant/swarm-token-worker` --advertise-addr $1 $2:2377
+else
+   echo "Illegal number of parameters"
+fi
+SCRIPT
+
+Vagrant.configure("2") do |config|
+  machines.each do |machine|
+    config.vm.define machine[:hostname] do |node|
+      node.vm.box = machine[:box]
+      node.vm.hostname = machine[:hostname]
+      node.vm.network "private_network", ip: machine[:ip]
+      node.vm.network "forwarded_port", guest: 8080, host: 8080, auto_correct: true
+      node.vm.provision "shell", inline: $install_docker_script
+      node.vm.synced_folder "web", "/home/vagrant/web"
+      node.vm.provision "shell", inline: "docker image build ./web/php -t my-web"
+      node.vm.provision "shell", inline: "docker image build ./web/mysql -t my-db"
+      node.vm.provision "shell", inline: "systemctl restart docker"
+      
+      if machine[:hostname] == "manager"
+        MANAGER_IP = machine[:ip]
+        node.vm.provision "shell", inline: $manager_script, :args => ["#{machine[:ip]}"], privileged: true
+        node.vm.provision "file", source: "./docker-compose.yml", destination: "/home/vagrant/docker-compose.yml"
+      else 
+        node.vm.provision "shell", inline: $node_script,:args => ["#{machine[:ip]}", "#{MANAGER_IP}"], privileged: true
+      end
+      node.vm.provider "virtualbox" do |vb|
+        vb.customize ["modifyvm", :id, "--memory", machine[:ram]]
+      end
+    end
+  end
+end

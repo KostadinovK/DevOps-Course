@@ -1,0 +1,33 @@
+---
+- hosts: grp-webservers
+  become: true
+
+  tasks:
+    - name: Install Apache HTTP Server
+      dnf: name=httpd state=present
+      when: ansible_os_family == "RedHat"
+    
+    - name: Start Apache HTTP Server and Enable it
+      service: name=httpd state=started enabled=true
+      when: ansible_os_family == "RedHat"
+
+    - name: Deploy index.j2 on RedHat
+      vars:
+        v_host_type: RedHat
+      template: src=templates/index.j2 dest=/var/www/html/index.html
+      when: ansible_os_family == "RedHat"
+
+    - name: Install Apache HTTP Server on Ubuntu
+      apt: name=apache2 state=present
+      when: ansible_os_family == "Debian"
+    
+    - name: Start Apache HTTP Server and Enable it on Ubuntu
+      service: name=apache2 state=started enabled=true
+      when: ansible_os_family == "Debian"
+
+    - name: Deploy index.j2 on Debian
+      vars:
+        v_host_type: Debian
+      template: src=templates/index.j2 dest=/var/www/html/index.html
+      when: ansible_os_family == "Debian"
+

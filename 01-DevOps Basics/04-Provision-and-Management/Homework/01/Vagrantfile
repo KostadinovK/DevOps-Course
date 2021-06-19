@@ -1,0 +1,31 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+$install_ansible = <<SCRIPT
+sudo dnf install -y epel-release
+sudo dnf install -y ansible
+SCRIPT
+
+Vagrant.configure(2) do |config|
+    
+  config.ssh.insert_key = false
+
+  config.vm.define "ans" do |ans|
+    ans.vm.box = "shekeriev/centos-8-minimal"
+    ans.vm.hostname = "ans.homework"
+    ans.vm.network "private_network", ip: "192.168.98.99"
+    ans.vm.provision "shell", inline: $install_ansible
+    ans.vm.provision "file", source: "./ans/inventory", destination: "/home/vagrant/ans/inventory"
+    ans.vm.provision "file", source: "./ans/ansible.cfg", destination: "/home/vagrant/ans/ansible.cfg"
+    ans.vm.provision "file", source: "./ans/playbook.yml", destination: "/home/vagrant/ans/playbook.yml"
+    ans.vm.provision "file", source: "./ans/Dockerfile", destination: "/home/vagrant/ans/Dockerfile"
+  end
+
+  config.vm.define "web" do |web|
+    web.vm.box = "shekeriev/centos-8-minimal"
+    web.vm.hostname = "web.homework"
+    web.vm.network "private_network", ip: "192.168.98.100"
+    web.vm.network "forwarded_port", guest: 8080, host: 8080, auto_correct: true
+  end
+ 
+end

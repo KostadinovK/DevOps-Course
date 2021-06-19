@@ -1,0 +1,23 @@
+version: "2.1"
+
+services:
+    com-php:
+        build: ./php/
+        ports:
+            - 8080:80
+        volumes:
+            - "${PROJECT_ROOT}:/var/www/html:ro"
+        networks:
+            - com-network
+        depends_on:
+            - com-mysql
+
+    com-mysql:
+        build: ./mysql/
+        networks:
+            - com-network
+        environment:
+            MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD}"
+
+networks:
+    com-network:

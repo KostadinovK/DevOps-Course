@@ -1,0 +1,49 @@
+---
+- hosts: webservers
+  become: true
+
+  tasks:
+   - name: Install Apache HTTP Server and PHP
+     dnf: name=httpd,php,php-mysqlnd state=present
+     
+   - name: Start Apache HTTP server and enable it
+     service: name=httpd state=started enabled=true
+     
+   - name: Allow HTTP service in the firewall
+     firewalld: service=http state=enabled permanent=yes immediate=yes
+
+   - name: Copy index.php to server folder
+     copy: src=/home/vagrant/web/index.php dest=/var/www/html/index.php
+
+   - name: Copy image to server folder
+     copy: src=/home/vagrant/web/bulgaria-map.png dest=/var/www/html/bulgaria-map.png
+
+   - name: Allow HTTPD to make netork connections
+     shell: sudo setsebool -P httpd_can_network_connect=1
+
+- hosts: dbservers
+  become: true
+
+  tasks:
+   - name: Add MariaDb repo
+     shell: apt-key adv --fetch-keys 'https://mariadb.org/mariadb_release_signing_key.asc'
+
+   - name: Add repo
+     shell: add-apt-repository 'deb [arch=amd64,arm64,ppc64el] http://mirror.23media.de/mariadb/repo/10.5/ubuntu bionic main'
+
+   - name: Apt update
+     apt: update_cache=yes
+
+   - name: Install MariaDb
+     apt: name=mariadb-server state=present
+
+   - name: Start and enable MariaDB
+     service: name=mariadb state=started enabled=true
+
+   - name: Copy sql file
+     copy: src=/home/vagrant/db/db_setup.sql dest=/home/vagrant/db_setup.sql
+
+   - name: Init DB
+     shell: mysql -u root < db_setup.sql
+
+     

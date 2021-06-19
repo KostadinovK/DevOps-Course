@@ -1,0 +1,25 @@
+version: "3.9"
+
+services:
+    web:
+        image: my-web
+        deploy:
+            replicas: 3
+        ports:
+            - 8080:80
+        volumes:
+            - "/home/vagrant/web/php/php:/var/www/html:ro"
+        networks:
+            - com-network
+        depends_on:
+            - db
+
+    db:
+        image: my-db
+        networks:
+            - com-network
+        environment:
+            MYSQL_ROOT_PASSWORD: "12345"
+
+networks:
+    com-network:

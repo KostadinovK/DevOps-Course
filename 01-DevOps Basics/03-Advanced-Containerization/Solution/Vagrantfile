@@ -1,0 +1,37 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+
+  config.ssh.insert_key = false
+
+  config.vm.define "docker1" do |docker1|
+    docker1.vm.box="shekeriev/ubuntu-20-04-server"
+    docker1.vm.hostname = "docker1.dob.lab"
+    docker1.vm.network "private_network", ip: "192.168.99.100"
+    docker1.vm.synced_folder "vagrant/", "/vagrant"
+    docker1.vm.provision "shell", path: "docker.sh"
+    docker1.vm.provision "shell", path: "docker-master.sh"
+  end
+
+  config.vm.define "docker2" do |docker2|
+    docker2.vm.box="shekeriev/ubuntu-20-04-server"
+    docker2.vm.hostname = "docker2.dob.lab"
+    docker2.vm.network "private_network", ip: "192.168.99.101"
+    docker2.vm.synced_folder "vagrant/", "/vagrant"
+    docker2.vm.provision "shell", path: "docker.sh"
+    docker2.vm.provision "shell", path: "docker-worker.sh"
+  end
+
+  config.vm.define "docker3" do |docker3|
+    docker3.vm.box="shekeriev/ubuntu-20-04-server"
+    docker3.vm.hostname = "docker3.dob.lab"
+    docker3.vm.network "private_network", ip: "192.168.99.102"
+    docker3.vm.synced_folder "vagrant/", "/vagrant"
+    docker3.vm.provision "shell", path: "docker.sh"
+    docker3.vm.provision "shell", path: "docker-worker.sh"
+    docker3.vm.provision "shell", path: "docker-build-and-run.sh"
+  end
+
+end
+ 

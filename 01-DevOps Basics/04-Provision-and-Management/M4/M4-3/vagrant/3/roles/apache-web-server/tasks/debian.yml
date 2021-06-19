@@ -1,0 +1,16 @@
+- name: Ubuntu - Install Apache HTTP Server
+  apt: 
+    name: apache2 
+    state: present
+    
+- name: Ubuntu - Start and Enable Apache HTTP Server
+  service: 
+    name: apache2 
+    state: started 
+    enabled: true
+
+- name: Ubuntu - Open HTTP Port in the Firewall
+  ufw: 
+    rule: allow
+    port: 80
+    proto: tcp
