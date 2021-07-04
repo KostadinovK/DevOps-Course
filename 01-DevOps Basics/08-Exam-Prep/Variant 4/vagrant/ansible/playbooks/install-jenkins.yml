@@ -1,0 +1,11 @@
+---
+- hosts: jenkins
+  become: true
+  vars:
+    jenkins_hostname: jenkins.dob.lab
+  roles:
+    - add-hosts
+    - firewall-8080
+    - git
+    - geerlingguy.java
+    - geerlingguy.jenkins

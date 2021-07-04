@@ -1,0 +1,51 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+
+  config.ssh.insert_key = false
+
+  config.vm.define "ansible" do |ansible|
+    ansible.vm.box="shekeriev/centos-8-minimal"
+    ansible.vm.hostname = "ansible.dob.lab"
+    ansible.vm.network "private_network", ip: "192.168.99.100"
+    ansible.vm.synced_folder "vagrant/ansible/", "/vagrant"
+    ansible.vm.provision "file", source: "ansible/playbooks", destination: "/tmp/playbooks"
+    ansible.vm.provision "file", source: "ansible/roles", destination: "/tmp/roles"
+    ansible.vm.provision "file", source: "ansible/vars/RedHat.yml", destination: "/tmp/RedHat.yml"
+    ansible.vm.provision "file", source: "ansible/files", destination: "/tmp/files"
+    ansible.vm.provision "shell", path: "ansible.sh"
+  end
+  
+  config.vm.define "jenkins" do |jenkins|
+    jenkins.vm.box="shekeriev/centos-8-minimal"
+    jenkins.vm.hostname = "jenkins.dob.lab"
+    jenkins.vm.network "private_network", ip: "192.168.99.101"
+    jenkins.vm.network "forwarded_port", guest: 8080, host: 8080, auto_correct: true
+    jenkins.vm.synced_folder "vagrant/jenkins/", "/vagrant"
+    jenkins.vm.provision "shell", path: "jenkins.sh"
+  end
+  
+  config.vm.define "nagios" do |nagios|
+    nagios.vm.box="shekeriev/centos-8-minimal"
+    nagios.vm.hostname = "nagios.dob.lab"
+    nagios.vm.network "private_network", ip: "192.168.99.102"
+    nagios.vm.network "forwarded_port", guest: 80, host: 8081, auto_correct: true
+    nagios.vm.synced_folder "vagrant/nagios/", "/vagrant"
+    nagios.vm.provision "file", source: "nagios/logos", destination: "/tmp/logos"
+    nagios.vm.provision "file", source: "ansible/files/check_docker_container.sh", destination: "/tmp/check_docker_container.sh"
+    nagios.vm.provision "file", source: "nagios/cfg", destination: "/tmp/cfg"
+    nagios.vm.provision "shell", path: "nagios.sh"
+  end
+  
+  config.vm.define "docker" do |docker|
+    docker.vm.box="shekeriev/centos-8-minimal"
+    docker.vm.hostname = "docker.dob.lab"
+    docker.vm.network "private_network", ip: "192.168.99.103"
+    docker.vm.network "forwarded_port", guest: 80, host: 8082, auto_correct: true
+    docker.vm.synced_folder "vagrant/docker/", "/vagrant"
+    docker.vm.provision "shell", path: "docker.sh"
+  end
+
+end
+ 

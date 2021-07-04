@@ -1,0 +1,7 @@
+---
+  - name: Firewall | Open 2nd HTTP (8080/tcp) port
+    firewalld:
+      port: 8080/tcp
+      permanent: true
+      state: enabled
+      immediate: true

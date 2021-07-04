@@ -1,0 +1,88 @@
+---
+#
+# Example of a Play which installs plugins and handles Jenkins restarts during the state changes
+#
+- name: Jenkins Master play
+  hosts: jenkins
+  become: true
+  vars:
+    my_jenkins_plugins:
+      build-pipeline-plugin:
+        enabled: yes
+      ssh:
+        enabled: yes
+      ssh-slaves:
+        enabled: yes
+      git:
+        enabled: yes
+      github:
+        enabled: yes
+      log-parser:
+        enabled: yes
+      copyartifact:
+        enabled: yes
+      workflow-aggregator:
+        enabled: yes
+      workflow-multibranch:
+        enabled: yes
+      docker-workflow:
+        enabled: yes
+      template-project:
+        enabled: yes
+  tasks:
+    - name: Install plugins
+      jenkins_plugin:
+        name: "{{ item.key }}"
+        timeout: 90
+        url_username: admin
+        url: http://localhost:8080
+        url_password: admin
+      register: my_jenkins_plugin_installed
+      with_dict: "{{ my_jenkins_plugins }}"
+
+    - name: Initiate the fact
+      set_fact:
+        jenkins_restart_required: no
+
+    - name: Check if restart is required
+      set_fact:
+        jenkins_restart_required: yes
+      when: item.changed
+      with_items: "{{ my_jenkins_plugin_installed.results }}"
+
+    - name: Restart Jenkins if required
+      service:
+        name: jenkins
+        state: restarted
+      when: jenkins_restart_required
+
+    - name: Wait for Jenkins to start up
+      uri:
+        url: http://localhost:8080
+        status_code: 200
+        timeout: 5
+      register: jenkins_service_status
+      # Keep trying for 5 mins in 5 sec intervals
+      retries: 60
+      delay: 5
+      until: >
+         'status' in jenkins_service_status and
+         jenkins_service_status['status'] == 200
+      when: jenkins_restart_required
+
+    - name: Reset the fact
+      set_fact:
+        jenkins_restart_required: no
+      when: jenkins_restart_required
+
+    - name: Plugin enabling
+      jenkins_plugin:
+        name: "{{ item.key }}"
+        timeout: 90
+        url_username: admin
+        url: http://localhost:8080
+        url_password: admin
+        state: "{{ 'enabled' if item.value['enabled'] else 'disabled'}}"
+      when: >
+        'enabled' in item.value
+      with_dict: "{{ my_jenkins_plugins }}"

@@ -1,0 +1,7 @@
+---
+  - name: Firewall | Open NRPE (5666/tcp) port
+    firewalld:
+      port: 5666/tcp
+      permanent: true
+      state: enabled
+      immediate: true

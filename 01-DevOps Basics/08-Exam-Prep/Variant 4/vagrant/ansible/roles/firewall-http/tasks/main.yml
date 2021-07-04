@@ -1,0 +1,7 @@
+---
+  - name: Firewall | Open HTTP port
+    firewalld:
+      service: http
+      permanent: true
+      state: enabled
+      immediate: true

@@ -1,0 +1,17 @@
+---
+  - name: Add ansible host
+    lineinfile:
+      path: /etc/hosts
+      line: '192.168.99.100 ansible.dob.lab ansible'
+  - name: Add jenkins host
+    lineinfile:
+      path: /etc/hosts
+      line: '192.168.99.101 jenkins.dob.lab jenkins'
+  - name: Add nagios host
+    lineinfile:
+      path: /etc/hosts
+      line: '192.168.99.102 nagios.dob.lab nagios'
+  - name: Add docker host
+    lineinfile:
+      path: /etc/hosts
+      line: '192.168.99.103 docker.dob.lab docker'

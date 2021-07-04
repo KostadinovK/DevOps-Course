@@ -1,0 +1,3 @@
+---
+  - name: Add dob-network to docker host ...
+    command: docker network create --driver bridge dob-network 

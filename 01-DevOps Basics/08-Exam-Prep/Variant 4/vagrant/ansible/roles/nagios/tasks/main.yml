@@ -1,0 +1,58 @@
+---
+  - name: Install EPEL Repository
+    dnf:
+      name=epel-release
+      state=present
+  - name: Install NAGIOS
+    dnf:
+      name=nagios,nagios-plugins-all,nagios-plugins-nrpe,python3-passlib
+      enablerepo=powertools
+      state=present  
+  - name: Set password for nagiosadmin
+    htpasswd:
+      path: /etc/nagios/passwd
+      name: nagiosadmin
+      password: 'Password1'
+  - name: Copy some nice logos
+    copy: 
+      src={{ item }} 
+      dest=/usr/share/nagios/html/images/logos/
+    with_fileglob:
+      - /vagrant/files/logos/*.png      
+  - name: Copy additional docker plugin
+    copy:
+      src=/vagrant/files/check_docker_container.sh
+      dest=/usr/lib64/nagios/plugins/check_docker_container.sh
+  - name: Turn on execute permission for check_docker_container.sh
+    file:
+      path=/usr/lib64/nagios/plugins/check_docker_container.sh
+      mode="a+x"
+  - name: Copy localhost.cfg file
+    copy:
+      src=/vagrant/files/cfg/localhost.cfg
+      dest=/etc/nagios/objects/localhost.cfg
+  - name: Create NAGIOS conf.d directory if it does not exist
+    file:
+      path: /etc/nagios/conf.d
+      state: directory
+      mode: '0755'      
+  - name: Copy additional configuration files
+    copy: 
+      src={{ item }} 
+      dest=/etc/nagios/conf.d/
+    with_fileglob:
+      - /vagrant/files/custom/*.cfg   
+  - name: Add a pointer to the /etc/nagios/conf.d folder in nagios.cfg
+    lineinfile:
+      path: /etc/nagios/nagios.cfg
+      line: cfg_dir=/etc/nagios/conf.d
+  - name: Enable and start NAGIOS
+    service:
+      name=nagios
+      state=started
+      enabled=true
+  - name: Enable and start HTTP
+    service:
+      name=httpd
+      state=started
+      enabled=true

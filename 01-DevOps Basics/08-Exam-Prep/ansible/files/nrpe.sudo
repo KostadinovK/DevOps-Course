@@ -1,0 +1,1 @@
+nrpe    ALL=(ALL)   NOPASSWD:ALL 

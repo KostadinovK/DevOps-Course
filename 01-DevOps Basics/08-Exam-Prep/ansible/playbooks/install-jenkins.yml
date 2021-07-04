@@ -1,0 +1,8 @@
+---
+- hosts: jenkins
+  become: true
+  vars:
+    jenkins_hostname: jenkins.dob.lab
+  roles:
+    - git
+    - geerlingguy.jenkins

@@ -1,0 +1,23 @@
+[ansible]
+192.168.99.100
+
+[jenkins]
+192.168.99.101
+
+[nagios]
+192.168.99.102
+
+[docker]
+192.168.99.103
+
+[ldo-servers:children]
+ansible
+jenkins
+nagios
+docker
+
+[all:vars]
+ansible_connection = ssh
+ansible_user = vagrant
+ansible_ssh_pass = vagrant
+remote_user = vagrant

@@ -1,0 +1,30 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+
+  config.ssh.insert_key = false
+
+  config.vm.define "master" do |master|
+    master.vm.box="shekeriev/centos-8-minimal"
+    master.vm.hostname = "master.dob.lab"
+    master.vm.network "private_network", ip: "192.168.99.100"
+    master.vm.network "forwarded_port", guest: 80, host: 8000
+    master.vm.provision "shell", path: "add_hosts.sh"
+  end
+  
+  config.vm.define "node1" do |node1|
+    node1.vm.box="shekeriev/centos-8-minimal"
+    node1.vm.hostname = "node1.dob.lab"
+    node1.vm.network "private_network", ip: "192.168.99.101"
+    node1.vm.network "forwarded_port", guest: 80, host: 8001
+    node1.vm.provision "shell", path: "add_hosts.sh"
+  end
+  
+  config.vm.define "node2" do |node2|
+    node2.vm.box="shekeriev/centos-8-minimal"
+    node2.vm.hostname = "node2.dob.lab"
+    node2.vm.network "private_network", ip: "192.168.99.102"
+    node2.vm.provision "shell", path: "add_hosts.sh"
+  end
+end
